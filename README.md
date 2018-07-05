@@ -43,5 +43,5 @@ Like many other software projects I do depend on the great work of others. A spe
 - TagLib# (https://github.com/mono/taglib-sharp)
 
 Additionally this project utilized open source tools for the mp3 to ogg conversion, many thanks to the creators of:
-lame (http://lame.sourceforge.net/) compiled version "lame3.100" by http://www.rarewares.org/mp3-lame-bundle.php#lame-current
-oggenc (https://xiph.org/downloads/) compiled version "oggenc2.88-1.3.5-generic" by http://www.rarewares.org/ogg-oggenc.php
+- lame (http://lame.sourceforge.net/) compiled version "lame3.100" by http://www.rarewares.org/mp3-lame-bundle.php#lame-current
+- oggenc (https://xiph.org/downloads/) compiled version "oggenc2.88-1.3.5-generic" by http://www.rarewares.org/ogg-oggenc.php
