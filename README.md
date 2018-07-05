@@ -15,9 +15,12 @@ This tool comes "as-is" with no support or warrenty (see LICENSE). If something 
 **How to use it**
 
 - Start BeatSaberSongGenerator.exe
-- Find the song file and cover image for the song you like to import (I tested with MP3, other file formats might work as well. The tool will tell you if it can't handle a selected audio file)
-- Fill in song name and author
+- Find the song file and cover image for the song you like to import (Only mp3 files are currently supported)
 - Click "Generate"
+
+alternatively you can create generate multiple levels at once.
+- Find a conver image (all songs will get this image, you can replace it later if wanted)
+- Click "Batch process..." button and select multiple audio files
 
 The generated song and corresponding levels are stored in the same directory as the audio file within a directory of the same name. That directy must then be placed in the "CustomSongs" folder in the Beat Saber directory.
 
@@ -27,6 +30,10 @@ Like many other software projects I do depend on the great work of others. A spe
 
 - File format specifications by Reaxt: https://steamcommunity.com/sharedfiles/filedetails/?id=1377190061
 - NWaves (signal processing library) by ar1st0crat: https://github.com/ar1st0crat/NWaves
-- .NET-Ogg-Vorbis-Encoder: https://github.com/SteveLillis/.NET-Ogg-Vorbis-Encoder
 - NAudio: https://github.com/naudio/NAudio
 - Json.NET from NewtonSoft: https://www.newtonsoft.com/json
+- TagLib# (https://github.com/mono/taglib-sharp)
+
+Additionally this project utilized open source tools for the mp3 to ogg conversion, many thanks to the creators of:
+lame (http://lame.sourceforge.net/) compiled version "lame3.100" by http://www.rarewares.org/mp3-lame-bundle.php#lame-current
+oggenc (https://xiph.org/downloads/) compiled version "oggenc2.88-1.3.5-generic" by http://www.rarewares.org/ogg-oggenc.php

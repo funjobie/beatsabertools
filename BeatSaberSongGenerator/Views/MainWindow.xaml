@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Beat Saber Song Generator" Height="250" Width="400"
+        Title="Beat Saber Song Generator" Height="300" Width="400"
         Name="Self">
     <Grid DataContext="{Binding ElementName=Self, Path=ViewModel}">
         <Grid.RowDefinitions>
@@ -15,6 +15,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*" MinHeight="50"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
@@ -45,5 +46,9 @@
                 <ProgressBar IsIndeterminate="True" Width="80" Height="8" Margin="5 0" Visibility="{Binding ProgressBarVisibility}"/>
             </StackPanel>
         </Button>
+
+        <Button Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="1" Content="Batch process multiple files (set cover first)" Command="{Binding BrowseMultipleAudioCommand}" Margin="2"/>
+        <Label Grid.Row="7" Grid.Column="2" Content="{Binding BatchProcessingText}" />
+
     </Grid>
 </Window>

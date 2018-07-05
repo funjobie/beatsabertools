@@ -42,8 +42,8 @@
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OggVorbisEncoder, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OggVorbisEncoder.1.1.0\lib\netstandard1.1\OggVorbisEncoder.dll</HintPath>
+    <Reference Include="policy.2.0.taglib-sharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=db62eba44689b5b0, processorArchitecture=MSIL">
+      <HintPath>..\packages\taglib.2.1.0.0\lib\policy.2.0.taglib-sharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -51,6 +51,9 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="taglib-sharp, Version=2.1.0.0, Culture=neutral, PublicKeyToken=db62eba44689b5b0, processorArchitecture=MSIL">
+      <HintPath>..\packages\taglib.2.1.0.0\lib\taglib-sharp.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -69,15 +72,13 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AudioProcessing\AudioDownsampler.cs" />
     <Compile Include="AudioProcessing\AudioSampleReader.cs" />
     <Compile Include="AudioProcessing\AudioToOggConverter.cs" />
     <Compile Include="AudioProcessing\BeatDetector.cs" />
-    <Compile Include="AudioProcessing\BeatMerger.cs" />
-    <Compile Include="Generators\BaseRhythmGenerator.cs" />
+    <Compile Include="Generators\BaseRhythmGeneratorCombinatory.cs" />
     <Compile Include="Generators\LightEffectGenerator.cs" />
-    <Compile Include="Generators\NoteCombinationLibrary.cs" />
-    <Compile Include="Generators\ObstacleGenerator.cs" />
+    <Compile Include="Generators\NoteCandidatesStateMachine.cs" />
+    <Compile Include="Generators\RhythmStyleProcessors.cs" />
     <Compile Include="Generators\TimeConversion.cs" />
     <Compile Include="IO\SongStorer.cs" />
     <Compile Include="Generators\LevelInstructionGenerator.cs" />
@@ -146,6 +147,20 @@
       <Project>{3fbf1b3a-3bed-4f2f-8008-871acf83e352}</Project>
       <Name>NWaves</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\Tools\lame.exe">
+      <Link>lame.exe</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Tools\lame_enc.dll">
+      <Link>lame_enc.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Tools\oggenc2.exe">
+      <Link>oggenc2.exe</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

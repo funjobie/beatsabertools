@@ -19,11 +19,11 @@ namespace BeatSaberSongGenerator.Generators
             var bpm = audioMetadata.BeatDetectorResult.BeatsPerMinute;
             var songIntensity = audioMetadata.BeatDetectorResult.SongIntensities;
             var continuousSongIntensity = new ContinuousLine2D(songIntensity.Select(x => new Point2D(x.SampleIndex, x.Intensity)));
-            for (var beatIdx = 0; beatIdx < audioMetadata.BeatDetectorResult.RegularBeats.Count; beatIdx++)
+            for (var beatIdx = 0; beatIdx < audioMetadata.BeatDetectorResult.DetectedBeats.Count; beatIdx++)
             {
                 if(beatIdx.IsOdd())
                     continue; // Skip every second beat
-                var regularBeat = audioMetadata.BeatDetectorResult.RegularBeats[beatIdx];
+                var regularBeat = audioMetadata.BeatDetectorResult.DetectedBeats[beatIdx];
                 var time = TimeConversion.SampleIndexToRealTime(regularBeat.SampleIndex, audioMetadata.SampleRate);
                 var timeAsBeatIndex = TimeConversion.SampleIndexToBeatIndex(regularBeat.SampleIndex, audioMetadata.SampleRate, bpm);
                 if (time > audioMetadata.Length - TimeSpan.FromSeconds(3))

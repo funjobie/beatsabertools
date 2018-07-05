@@ -5,6 +5,7 @@
         Easy,
         Normal,
         Hard,
-        Expert
+        Expert,
+        ExpertPlus
     }
 }

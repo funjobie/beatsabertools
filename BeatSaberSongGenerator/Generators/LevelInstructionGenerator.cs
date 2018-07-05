@@ -13,29 +13,24 @@ namespace BeatSaberSongGenerator.Generators
     {
         private readonly SongGeneratorSettings settings;
         private readonly LightEffectGenerator lightEffectGenerator;
-        private readonly BaseRhythmGenerator baseRhythmGenerator;
-        private readonly ObstacleGenerator obstacleGenerator;
+        private readonly BaseRhythmGeneratorCombinatory baseRhythmGenerator;
 
         public LevelInstructionGenerator(SongGeneratorSettings settings)
         {
             this.settings = settings;
             lightEffectGenerator = new LightEffectGenerator();
-            baseRhythmGenerator = new BaseRhythmGenerator();
-            obstacleGenerator = new ObstacleGenerator();
+            baseRhythmGenerator = new BaseRhythmGeneratorCombinatory();
         }
 
         public LevelInstructions Generate(Difficulty difficulty, AudioMetadata audioMetadata)
         {
             var events = lightEffectGenerator.Generate(audioMetadata);
-            //var notes = GenerateNotesFromSongAnalysis(difficulty, audioMetadata);
-            var notes = GenerateModifiedBaseRhythm(difficulty, audioMetadata);
-            var obstacles = obstacleGenerator.Generate(difficulty, audioMetadata);
-            notes = RemoveNotesOverlappingWithObstacle(notes, obstacles).ToList();
+            var notes = GenerateModifiedBaseRhythm(difficulty, audioMetadata, out var obstacles);
             return new LevelInstructions
             {
                 Version = "1.5.0",
                 BeatsPerMinute = (float) audioMetadata.BeatDetectorResult.BeatsPerMinute,
-                BeatsPerBar = audioMetadata.BeatDetectorResult.BeatsPerBar,
+                BeatsPerBar = 4, //meaning is unclear
                 NoteJumpSpeed = 10,
                 Shuffle = 0,
                 ShufflePeriod = 0.5f,
@@ -45,91 +40,43 @@ namespace BeatSaberSongGenerator.Generators
             };
         }
 
-        private IEnumerable<Note> RemoveNotesOverlappingWithObstacle(IEnumerable<Note> notes, List<Obstacle> obstacles)
+        private IList<Note> GenerateModifiedBaseRhythm(Difficulty difficulty, AudioMetadata audioMetadata, out List<Obstacle> obstacles)
         {
-            var obstacleQueue = new Queue<Obstacle>(obstacles.OrderBy(x => x.Time));
-            var activeObstacles = new List<Obstacle>();
-            foreach (var note in notes)
-            {
-                activeObstacles.RemoveAll(obstacle => obstacle.Time + obstacle.Duration < note.Time);
-                while (obstacleQueue.Count > 0 && obstacleQueue.Peek().Time < note.Time)
-                {
-                    var obstacle = obstacleQueue.Dequeue();
-                    if(obstacle.Time + obstacle.Duration > note.Time)
-                        activeObstacles.Add(obstacle);
-                }
-                var isOverlapping = activeObstacles.Any(obstacle => IsNoteOverlappingObstacle(note, obstacle));
-                if (!isOverlapping)
-                    yield return note;
-            }
-        }
+            List<Beat> beats = audioMetadata.BeatDetectorResult.DetectedBeats;
 
-        private static bool IsNoteOverlappingObstacle(Note note, Obstacle obstacle)
-        {
-            var isHorizontalOverlap = note.HorizontalPosition >= obstacle.HorizontalPosition
-                                      && note.HorizontalPosition <= obstacle.HorizontalPosition + obstacle.Width;
-            var isVerticalOverlap = (int)note.VerticalPosition >= (int)obstacle.Type;
-            return isHorizontalOverlap && isVerticalOverlap;
-        }
+            TimeSpan timeBetweenNotes = DetermineTimeBetweenNotes(difficulty);
+            beats = FilterNotesByDifficulty(beats, timeBetweenNotes, audioMetadata.SampleRate);
 
-        private IList<Note> GenerateModifiedBaseRhythm(Difficulty difficulty, AudioMetadata audioMetadata)
-        {
-            var beats = BeatMerger.Merge(
-                audioMetadata.BeatDetectorResult.DetectedBeats, 
-                audioMetadata.BeatDetectorResult.RegularBeats, 
-                audioMetadata.SampleRate);
-            var startBeatIdx = beats.FindIndex(beat => beat.Strength > 0);
-            var endBeatIdx = beats.FindLastIndex(beat => beat.Strength > 0);
-            var totalValidBeatCount = endBeatIdx - startBeatIdx + 1;
-            var barCount = totalValidBeatCount / audioMetadata.BeatDetectorResult.BeatsPerBar;
-            var notes = baseRhythmGenerator.Generate(audioMetadata.BeatDetectorResult.BeatsPerBar, barCount, startBeatIdx);
-            var difficultyFilteredNotes = FilterNotesByDifficulty(notes, audioMetadata, difficulty);
-            return difficultyFilteredNotes;
-        }
-
-        private List<Note> FilterNotesByDifficulty(IEnumerable<Note> baseNotes, AudioMetadata audioMetadata, Difficulty difficulty)
-        {
-            var songIntensities = audioMetadata.BeatDetectorResult.SongIntensities;
-            var bpm = audioMetadata.BeatDetectorResult.BeatsPerMinute;
-            var sampleRate = audioMetadata.SampleRate;
-            var continuousSongIntensity = new ContinuousLine2D(songIntensities.Select(x => new Point2D(x.SampleIndex, x.Intensity)));
-            var minimumTimeBetweenNotes = DetermineTimeBetweenNotes(difficulty);
-            var notes = new List<Note>();
-            Note lastNote = null;
-            foreach (var baseNote in baseNotes)
-            {
-                var noteTime = TimeConversion.BeatIndexToRealTime(baseNote.Time, bpm);
-                var noteTimeInSamples = noteTime.TotalSeconds * sampleRate;
-                if (noteTime < TimeSpan.FromSeconds(3))
-                    continue; // Stop a few seconds before song ends
-                if (noteTime > audioMetadata.Length - TimeSpan.FromSeconds(3))
-                    break; // Stop a few seconds before song ends
-                var currentIntensity = continuousSongIntensity.ValueAtX(noteTimeInSamples);
-                if (lastNote != null)
-                {
-                    var timeSinceLastBeat = noteTime
-                                            - TimeConversion.BeatIndexToRealTime(lastNote.Time, bpm);
-                    if (currentIntensity.IsNaN())
-                        currentIntensity = 0;
-                    var intensityAdjustment = TimeSpan.FromSeconds(0.5 * (1 - currentIntensity));
-                    if (timeSinceLastBeat < minimumTimeBetweenNotes + intensityAdjustment
-                        && !AreSimultaneous(baseNote, lastNote))
-                    {
-                        continue;
-                    }
-                }
-                var noteProbability = currentIntensity < 0.3 ? 0 : currentIntensity;
-                if(StaticRandom.Rng.NextDouble() > noteProbability)
-                    continue;
-                notes.Add(baseNote);
-                lastNote = baseNote;
-            }
+            var notes = baseRhythmGenerator.Generate(beats, out obstacles, audioMetadata);
             return notes;
         }
 
-        private static bool AreSimultaneous(Note baseNote, Note lastNote)
+        List<Beat> FilterNotesByDifficulty(List<Beat> originalBeats, TimeSpan timeBetweenNotes, int sampleRate)
         {
-            return (baseNote.Time - (double)lastNote.Time).Abs() < 0.1;
+            List<Beat> beats = new List<Beat>();
+            beats.AddRange(originalBeats);
+            float secondsToMerge = (float)timeBetweenNotes.TotalSeconds;
+            float beatIndexesToMerge = secondsToMerge * sampleRate;
+            List<Beat> strengthFilteredBeats = new List<Beat>();
+            while (beats.Count() > 0)
+            {
+                Beat strongestBeat = beats.MaximumItem(x => x.Strength);
+                beats.Remove(strongestBeat);
+                List<Beat> beatsToDelete = new List<Beat>();
+                for (int i = 0; i < beats.Count(); ++i)
+                {
+                    if (Math.Abs(beats[i].SampleIndex - strongestBeat.SampleIndex) < beatIndexesToMerge)
+                    {
+                        strongestBeat.Strength += beats[i].Strength;
+                        beatsToDelete.Add(beats[i]);
+                    }
+                }
+                strengthFilteredBeats.Add(strongestBeat);
+                for (int i = 0; i < beatsToDelete.Count(); ++i)
+                    beats.Remove(beatsToDelete[i]);
+            }
+            strengthFilteredBeats.Sort((a, b) => (a.SampleIndex.CompareTo(b.SampleIndex)));
+            return strengthFilteredBeats;
         }
 
         private TimeSpan DetermineTimeBetweenNotes(Difficulty difficulty)
@@ -148,6 +95,9 @@ namespace BeatSaberSongGenerator.Generators
                     break;
                 case Difficulty.Expert:
                     multiplier = 0.3;
+                    break;
+                case Difficulty.ExpertPlus:
+                    multiplier = 0;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(difficulty), difficulty, null);
