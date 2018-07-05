@@ -12,6 +12,7 @@ You need to mod Beat Saber using this project: https://github.com/xyonico/BeatSa
 
 The current release version can be found at
 https://github.com/funjobie/beatsabertools/raw/master/BeatSaberSongGenerator/Releases/BeatSaberSongGenerator_forked_v1-0.zip
+
 you can find the original project repository created by Jan Scholtyssek that this fork is based on at:
 https://github.com/mindleaving/beatsabertools
 
